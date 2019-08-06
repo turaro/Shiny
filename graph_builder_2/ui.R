@@ -5,6 +5,7 @@ dashboardPage(
   dashboardHeader(title = "GBuilder"),
   dashboardSidebar(
     sidebarMenu( id = "sbmenu",
+      menuItem("Stage 4 limb RNAseq - 2019", tabName = "s4limb"),
       menuItem("Color experiment - 2017", tabName = "colornew"),       
       menuItem("Growth experiment - 2016-2017", tabName = "growth"),
       menuItem("Color experiment (petu) - 2015", tabName = "color"),
@@ -231,6 +232,36 @@ tabItem(tabName = "colornew",
               fluidRow(
                 column(width = 12, align = "center", 
                        actionButton("colornew_det", "Details"))))
+        ) #fluidPage close
+), # 7th tab close
+tabItem(tabName = "s4limb",
+        fluidPage(
+          box(width = 4,
+              fluidRow(
+                column(width = 12,
+                       textInput("id8", "Gene ID:", value = "", width = NULL))),
+              fluidRow(
+                column(width = 12, align="center",
+                       actionButton(inputId = "plot8", label = "Plot" ))),
+              fluidRow(
+                column(width = 12,
+                       radioButtons("mtype8", "Multiple plot generation:", c("From space-delimited pasted list" = "list", "From column file" = "file"), inline = FALSE))),
+              fluidRow(
+                conditionalPanel( condition = "input.mtype8 == 'list'", 
+                                  column(width = 12,
+                                         textInput("list8", "List:", value = "", width = NULL)))),
+              fluidRow(
+                conditionalPanel( condition = "input.mtype8 == 'file'", 
+                                  column(width = 12,
+                                         fileInput("file8", "File:",
+                                                   accept = c("text/csv", "text/comma-separated-values", "text/tab-separated-values", "text/plain", ".csv", ".tsv"))))),
+              fluidRow(
+                column(width = 12, align = "center", 
+                       downloadButton('dow8', 'Download')))),
+          box(width = 8, plotOutput("plot8"),
+              fluidRow(
+                column(width = 12, align = "center", 
+                       actionButton("s4limb_det", "Details"))))
         ) #fluidPage close
 ) # 7th tab close
 ) #tabItems close

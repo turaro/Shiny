@@ -553,6 +553,76 @@ showNotification(as.character(info["colornew",]), duration = NULL, closeButton =
         }   #end of content  
       )    #end of downloadHandler
     } # end of colornew condition 
+else if (input$sbmenu == "s4limb") {
+      
+observeEvent(input$s4limb_det, {
+info <- read.table("files/info", sep = ":", row.names = 1)
+if(exists("not")){removeNotification(not)}
+showNotification(as.character(info["s4limb",]), duration = NULL, closeButton = TRUE, id = "not")
+})  
+      
+      s4limbfile <- read.table("files/s4limb", header = T, row.names = 1, check.names=FALSE)       #Read data 
+      count <- as.data.frame(matrix(0, nrow = 6, ncol = 2))
+      colnames(count) <- c("count","condition")
+      
+      observeEvent(input$plot8, {
+        output$plot8 <- renderPlot({
+          isolate({
+            count$count <- as.numeric(as.character(c(t(s4limbfile[input$id8,]))))
+            count$condition <- colnames(s4limbfile)
+            #This part below is responsible for plot building
+            pal <- c("#fffeff", "#ff4646")
+            countstat <- summarySE(count, measurevar="count", groupvars=c("condition"))
+            p <- ggplot(countstat, aes(x=condition, y=count, color=condition, fill=condition, group=condition)) + 
+              geom_bar(stat="identity", width=0.5) +
+              geom_errorbar(aes(ymin=count-sd, ymax=count+sd), width=.1) +  
+              scale_colour_manual(values=c(rep("black", 2))) + 
+              theme(axis.text=element_text(size=13)) +
+              scale_fill_manual(values=pal)
+          }) #end of isolate
+          p
+        }) #end of renderPlot
+      }) #end of observeEvent8
+      output$dow8 <- downloadHandler(
+        filename = 'images.zip',
+        content = function(fname) {
+          on.exit(setwd(old_wd))
+          if (input$mtype8 == "list") {
+            candidate <- unlist(strsplit(input$list8, split=" "))   #Here plots are built and archived for download
+          }
+          else if (input$mtype8 == "file") {
+            inframe <- input$file8
+            tempo <- read.csv(inframe$datapath)
+            candidate <- tempo[,1]
+          }
+          withProgress(message = "Creating archive:", value = 0, {
+            fs <- c()
+            tmpdir <- tempdir()
+            setwd(tempdir())
+            pal <- c("#fffeff", "#ff4646")
+            for(j in candidate) { #Start of big for loop
+              count$count <- as.numeric(as.character(c(t(s4limbfile[j,]))))     
+              count$condition <- colnames(s4limbfile)
+              countstat <- summarySE(count, measurevar="count", groupvars=c("condition"))
+              pi <- ggplot(countstat, aes(x=condition, y=count, color=condition, fill=condition, group=condition)) + 
+                geom_bar(stat="identity", width=0.5) +
+                geom_errorbar(aes(ymin=count-sd, ymax=count+sd), width=.1) +  
+                scale_colour_manual(values=c(rep("black", 2))) + 
+                theme(axis.text=element_text(size=13)) +
+                scale_fill_manual(values=pal)
+              
+              graphname <- paste(j,".png",sep="")
+              fs <- append(fs, graphname)              #Writing to ID-defined file
+              png(file=graphname, width = 960, height = 480, units = "px")    
+              print(pi)
+              dev.off()
+              incProgress(1/length(candidate), detail = paste("Drawing plot", grep(j, candidate), "out of", length(candidate))) 
+            }  #end of big for loop
+            zip(zipfile=fname, files=fs)             #Archiving
+          }) #end of withProgress
+        }   #end of content  
+      )    #end of downloadHandler
+    } #end of s4limb condition
 }) #end of observeEvent
 })
 
